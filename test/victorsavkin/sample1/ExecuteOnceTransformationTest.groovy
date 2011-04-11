@@ -6,7 +6,7 @@ import spock.lang.Specification
 
 class ExecuteOnceTransformationTest extends Specification{
 
-	def 'should execute method only once'() {
+	def 'should execute a method only once'() {
 		when:
 		def testObject = new GroovyShell().evaluate('''
 			class TestClass {

@@ -11,11 +11,9 @@ class Main {
 			class Service {
 				class Repository {
 					def findUserById(id){
-
 					}
 
 					def findUserByIdAndName(id, name){
-
 					}
 				}
 

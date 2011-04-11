@@ -8,14 +8,14 @@ import org.codehaus.groovy.control.SourceUnit
 
 import org.codehaus.groovy.ast.MethodNode
 
-import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.stmt.BlockStatement
 import org.codehaus.groovy.ast.stmt.IfStatement
 
-@GroovyASTTransformation(phase = INSTRUCTION_SELECTION)
+@GroovyASTTransformation(phase = SEMANTIC_ANALYSIS)
 class ExecuteOnceTransformation implements ASTTransformation {
 
 	private specification = new ExecuteOnceTransformationSpecification()
+	private astFactory = new ExecuteOnceAstFactory()
 
 	void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
 		if(specification.shouldSkipTransformation(astNodes))
@@ -26,47 +26,27 @@ class ExecuteOnceTransformation implements ASTTransformation {
 			return
 		}
 
-		MethodNode annotatedMethod = astNodes[1]
-		def fieldName = createFieldName(annotatedMethod.name)
+		MethodNode method = astNodes[1]
+		def fieldName = createFieldName(method.name)
 
-		addGuardFieldToClass(fieldName, annotatedMethod)
-		addGuardIfStatementToMethod(fieldName, annotatedMethod)
+		addGuardFieldToClass fieldName, method
+		addGuardIfStatementToMethod fieldName, method
 	}
 
-
-	private addGuardFieldToClass(String fieldName, MethodNode annotatedMethod) {
-		def field = generatePrivateFieldNode(fieldName)
-		annotatedMethod.declaringClass.addField field
+	private addGuardFieldToClass(fieldName, method) {
+		def field = astFactory.generatePrivateFieldNode(fieldName)
+		method.declaringClass.addField field
 	}
 
-	private addGuardIfStatementToMethod(String fieldName, MethodNode annotatedMethod) {
-		def guardStatement = createGuardIfStatement(fieldName)
-		addAllStatementsOfMethodIntoGuardIf(guardStatement, annotatedMethod)
-		annotatedMethod.code = guardStatement
+	private addGuardIfStatementToMethod(fieldName, method) {
+		def guardStatement = astFactory.createGuardIfStatement(fieldName)
+		addAllStatementsOfMethodIntoGuardIf(guardStatement, method)
+		method.code = guardStatement
 	}
 
-	private addAllStatementsOfMethodIntoGuardIf(IfStatement guardStatement, MethodNode methodNode) {
-		BlockStatement ifBlock = guardStatement.ifBlock
-		ifBlock.statements.addAll(methodNode.code.statements)
-	}
-
-
-	private createGuardIfStatement(fieldName) {
-		def ast = new AstBuilder().buildFromString INSTRUCTION_SELECTION, true, """
-			if(! ${fieldName}){
-				${fieldName} = true
-			}
-		"""
-		ast[0].statements[0]
-	}
-
-	private generatePrivateFieldNode(fieldName) {
-		def ast = new AstBuilder().buildFromString INSTRUCTION_SELECTION, false, """
-			class ${fieldName}_Class {
-				private boolean ${fieldName} = false
-			}
-		"""
-		ast[1].fields.find{it.name == fieldName}
+	private addAllStatementsOfMethodIntoGuardIf(guardIfStatement, method) {
+		BlockStatement ifBlock = guardIfStatement.ifBlock
+		ifBlock.statements.addAll(method.code.statements)
 	}
 
 	private createFieldName(methodName) {
