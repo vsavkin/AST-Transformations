@@ -2,7 +2,7 @@ package victorsavkin.sample2
 
 import org.codehaus.groovy.control.SourceUnit
 
-class MethodCallTraceTransformationSpecification {
+class CallRecorderTransformationSpecification {
 	private processed = []
 
 	boolean isSourceUnitAlreadyProcessed(SourceUnit unit){

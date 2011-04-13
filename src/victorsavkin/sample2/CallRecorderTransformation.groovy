@@ -5,11 +5,13 @@ import org.codehaus.groovy.transform.GroovyASTTransformation
 import org.codehaus.groovy.transform.ASTTransformation
 import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.ast.stmt.BlockStatement
+import org.codehaus.groovy.ast.VariableScope
 
 @GroovyASTTransformation(phase = CONVERSION)
-class MethodCallTraceTransformation implements ASTTransformation{
+class CallRecorderTransformation implements ASTTransformation{
 
-	private specification = new MethodCallTraceTransformationSpecification()
+	private specification = new CallRecorderTransformationSpecification()
 
 	void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
 		if(specification.shouldSkipTransformation(sourceUnit))
@@ -27,7 +29,8 @@ class MethodCallTraceTransformation implements ASTTransformation{
 	}
 
 	private addMethodCallTraceStatement(method) {
-		def outputCreator = new MethodCallTraceStatementCreator(method)
-		method.code.statements.add 0, outputCreator.createStatement()
+		def outputCreator = new CallRecorderStatementCreator(method)
+		def exprList = [outputCreator.createStatement(), method.code]
+		method.code = new BlockStatement(exprList, new VariableScope())
 	}
 }

@@ -5,7 +5,7 @@ import static org.codehaus.groovy.control.CompilePhase.*
 
 class Main {
 	static void main(String[] args){
-		def transform = new MethodCallTraceTransformation()
+		def transform = new CallRecorderTransformation()
 		def helper = new TransformTestHelper(transform, CONVERSION)
 		def clazz = helper.parse '''
 			class Service {
@@ -15,18 +15,24 @@ class Main {
 
 					def findUserByIdAndName(id, name){
 					}
+
+					static void staticMethod(){
+					}
 				}
 
 				def businessOperation(){
 					def repo = new Repository()
 					repo.findUserById(1)
 					repo.findUserByIdAndName([1,2], 'Victor')
+					Repository.staticMethod()
 				}
 			}
 		'''
 		def service = clazz.newInstance()
 		service.businessOperation()
-		Thread.sleep(500)
 
+		CallRecorder.printCalls()
+		Thread.sleep(500)
 	}
+
 }
