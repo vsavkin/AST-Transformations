@@ -83,9 +83,5 @@ class CallRecorderTransformationTest extends Specification {
 		def (m1,m2) = CallRecorder.calls
 		m1.method == 'method1'
 		m2.method == 'method2'
-
-		where:
-		INT_ARG = 1
-		STR_ARG = "aaa"
 	}
 }

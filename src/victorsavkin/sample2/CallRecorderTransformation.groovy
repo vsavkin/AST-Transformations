@@ -16,21 +16,21 @@ class CallRecorderTransformation implements ASTTransformation{
 	void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
 		if(specification.shouldSkipTransformation(sourceUnit))
 			return
-		
+
 		getAllMethodsInUnit(sourceUnit).each {
 			addMethodCallTraceStatement it
 		}
-		
+
 		specification.markUnitAsProcessed sourceUnit
 	}
 
 	private getAllMethodsInUnit(sourceUnit) {
-		return sourceUnit.ast.classes.methods.flatten()
+		sourceUnit.ast.classes.methods.flatten()
 	}
 
 	private addMethodCallTraceStatement(method) {
-		def outputCreator = new CallRecorderStatementCreator(method)
-		def exprList = [outputCreator.createStatement(), method.code]
+		def ast = new CallRecorderAstFactory(method)
+		def exprList = [ast.createStatement(), method.code]
 		method.code = new BlockStatement(exprList, new VariableScope())
 	}
 }

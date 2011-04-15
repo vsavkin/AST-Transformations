@@ -6,33 +6,17 @@ import static org.codehaus.groovy.control.CompilePhase.*
 class Main {
 	static void main(String[] args){
 		def transform = new CallRecorderTransformation()
-		def helper = new TransformTestHelper(transform, CONVERSION)
-		def clazz = helper.parse '''
+		def clazz = new TransformTestHelper(transform, CONVERSION).parse '''
 			class Service {
-				class Repository {
-					def findUserById(id){
-					}
-
-					def findUserByIdAndName(id, name){
-					}
-
-					static void staticMethod(){
-					}
-				}
-
-				def businessOperation(){
-					def repo = new Repository()
-					repo.findUserById(1)
-					repo.findUserByIdAndName([1,2], 'Victor')
-					Repository.staticMethod()
+				def factorial(n){
+					(n <= 1) ? 1 : n * factorial (n - 1)
 				}
 			}
 		'''
-		def service = clazz.newInstance()
-		service.businessOperation()
 
+		def service = clazz.newInstance()
+		service.factorial(5)
 		CallRecorder.printCalls()
-		Thread.sleep(500)
 	}
 
 }
